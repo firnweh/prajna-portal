@@ -13,6 +13,9 @@ export const studentNav: NavItem[] = [
   { label: 'Revision Plan', href: '/revision-plan', icon: '📅' },
   { label: 'Mistake Analysis', href: '/mistakes', icon: '🧪' },
   { label: 'Deep Analysis', href: '/analysis', icon: '🔬' },
+  { label: 'Ask PRAJNA', href: '/copilot', icon: '🤖' },
+  { label: 'Question Bank', href: '/question-bank', icon: '📝' },
+  { label: 'Mock Test', href: '/mock-test', icon: '📄' },
 ];
 
 export const orgNav: NavItem[] = [
@@ -25,6 +28,9 @@ export const orgNav: NavItem[] = [
   { label: 'Revision Plan', href: '/revision-plan', icon: '📅' },
   { label: 'Mistake Analysis', href: '/mistakes', icon: '🧪' },
   { label: 'Deep Analysis', href: '/analysis', icon: '🔬' },
+  { label: 'Ask PRAJNA', href: '/copilot', icon: '🤖' },
+  { label: 'Question Bank', href: '/question-bank', icon: '📝' },
+  { label: 'Mock Test', href: '/mock-test', icon: '📄' },
 ];
 
 export function getSubjectLinks(exam: 'neet' | 'jee'): NavItem[] {
