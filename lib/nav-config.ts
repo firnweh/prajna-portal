@@ -7,8 +7,11 @@ export interface NavItem {
 export const studentNav: NavItem[] = [
   { label: 'My Dashboard', href: '/student', icon: '📊' },
   { label: 'Predictions', href: '/predictions', icon: '🔮' },
-  { label: 'Lesson Plan', href: '/predictions?tab=lesson', icon: '📚' },
-  { label: 'Mistake Analysis', href: '/predictions?tab=mistakes', icon: '🧪' },
+  { label: 'Backtest', href: '/backtest', icon: '🎯' },
+  { label: 'Topic Deep Dive', href: '/deep-dive', icon: '🔬' },
+  { label: 'Lesson Plan', href: '/lesson-plan', icon: '📚' },
+  { label: 'Revision Plan', href: '/revision-plan', icon: '📅' },
+  { label: 'Mistake Analysis', href: '/mistakes', icon: '🧪' },
   { label: 'Deep Analysis', href: '/analysis', icon: '🔬' },
 ];
 
@@ -16,8 +19,11 @@ export const orgNav: NavItem[] = [
   { label: 'Organisation', href: '/org', icon: '📊' },
   { label: 'At-Risk Students', href: '/org/risk', icon: '⚠' },
   { label: 'Predictions', href: '/predictions', icon: '🔮' },
-  { label: 'Lesson Plan', href: '/predictions?tab=lesson', icon: '📚' },
-  { label: 'Mistake Analysis', href: '/predictions?tab=mistakes', icon: '🧪' },
+  { label: 'Backtest', href: '/backtest', icon: '🎯' },
+  { label: 'Topic Deep Dive', href: '/deep-dive', icon: '🔬' },
+  { label: 'Lesson Plan', href: '/lesson-plan', icon: '📚' },
+  { label: 'Revision Plan', href: '/revision-plan', icon: '📅' },
+  { label: 'Mistake Analysis', href: '/mistakes', icon: '🧪' },
   { label: 'Deep Analysis', href: '/analysis', icon: '🔬' },
 ];
 
