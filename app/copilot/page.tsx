@@ -125,7 +125,7 @@ export default function CopilotPage() {
           target_year: year,
           question: q,
           subject_filter: null,
-          persona: 'tutor',
+          persona: 'student',
         }),
         signal: controller.signal,
       });
