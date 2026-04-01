@@ -23,11 +23,9 @@ async function fetchWithAuth(url: string, opts: RequestInit = {}) {
   return res;
 }
 
-const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || '';
-const INTEL = process.env.NEXT_PUBLIC_INTEL_URL || '';
-
+// All calls go through Next.js API proxy routes — no CORS issues
 export const backend = (path: string, opts?: RequestInit) =>
-  fetchWithAuth(`${BACKEND}${path}`, opts);
+  fetchWithAuth(`/api/proxy/backend${path}`, opts);
 
 export const intelligence = (path: string, opts?: RequestInit) =>
-  fetchWithAuth(`${INTEL}${path}`, opts);
+  fetchWithAuth(`/api/proxy/intel${path}`, opts);
