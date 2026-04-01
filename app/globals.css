@@ -46,6 +46,24 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+
+  --color-prajna-bg: #0f0f1a;
+  --color-prajna-surface: #131320;
+  --color-prajna-card: #1a1d2e;
+  --color-prajna-border: #1e1e3a;
+  --color-prajna-accent: #6366f1;
+  --color-prajna-teal: #00d4aa;
+  --color-prajna-warn: #ff6b6b;
+  --color-prajna-gold: #ffd166;
+  --color-prajna-text: #e2e8f0;
+  --color-prajna-muted: #64748b;
+
+  --color-subject-physics: #f59e0b;
+  --color-subject-chemistry: #6366f1;
+  --color-subject-biology: #22c55e;
+  --color-subject-mathematics: #a855f7;
+  --color-subject-botany: #22c55e;
+  --color-subject-zoology: #10b981;
 }
 
 :root {
@@ -122,7 +140,8 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    background-color: #0f0f1a;
+    color: #e2e8f0;
   }
   html {
     @apply font-sans;
