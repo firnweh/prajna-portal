@@ -9,7 +9,7 @@ import {
   BarChart, Bar, Cell, Legend, ReferenceArea,
 } from 'recharts';
 
-const TOOLTIP_STYLE = { background: '#1a1d2e', border: '1px solid #1e1e3a', borderRadius: 8, color: '#e2e8f0' };
+const TOOLTIP_STYLE = { background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 8, color: '#1e293b' };
 
 const SUBJECT_COLORS: Record<string, string> = {
   Physics: '#f59e0b', Chemistry: '#6366f1', Biology: '#22c55e',
@@ -256,7 +256,7 @@ export default function MistakeAnalysisPage() {
                   <h2 className="text-sm font-bold uppercase tracking-wider text-prajna-muted mb-4">Time vs Accuracy</h2>
                   <ResponsiveContainer width="100%" height={400}>
                     <ScatterChart margin={{ top: 10, right: 20, bottom: 10, left: 10 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#1e1e3a" />
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                       <XAxis
                         type="number" dataKey="x" name="Avg Time (s)"
                         tick={{ fill: '#64748b', fontSize: 11 }}
@@ -372,7 +372,7 @@ export default function MistakeAnalysisPage() {
                     <h2 className="text-sm font-bold uppercase tracking-wider text-prajna-muted mb-4">Feature Importance</h2>
                     <ResponsiveContainer width="100%" height={Math.max(250, importanceChart.length * 32)}>
                       <BarChart data={importanceChart} layout="vertical" margin={{ left: 120, right: 20, top: 5, bottom: 5 }}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#1e1e3a" horizontal={false} />
+                        <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" horizontal={false} />
                         <XAxis type="number" tick={{ fill: '#64748b', fontSize: 11 }} unit="%" />
                         <YAxis
                           type="category" dataKey="name" width={110}

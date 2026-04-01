@@ -8,7 +8,7 @@ import {
   PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend,
 } from 'recharts';
 
-const TOOLTIP_STYLE = { background: '#1a1d2e', border: '1px solid #1e1e3a', borderRadius: 8, color: '#e2e8f0' };
+const TOOLTIP_STYLE = { background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 8, color: '#1e293b' };
 
 const SUBJECT_COLORS: Record<string, string> = {
   Physics: '#f59e0b', Chemistry: '#6366f1', Biology: '#22c55e',

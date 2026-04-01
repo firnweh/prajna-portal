@@ -4,10 +4,10 @@ export function computeRoi(studentAcc: number | null, prob: number, confidence: 
 }
 
 const ROI_CONFIG = [
-  { min: 0.4, cls: 'bg-[#2e0d0d] text-[#ff6b6b]', label: '⚠ CRITICAL' },
-  { min: 0.25, cls: 'bg-[#2e1a00] text-[#f59e0b]', label: '⚡ FOCUS' },
-  { min: 0.1, cls: 'bg-[#1a1a35] text-[#818cf8]', label: '📘 REVIEW' },
-  { min: 0, cls: 'bg-[#0d2e1a] text-[#22c55e]', label: '✓ OK' },
+  { min: 0.4, cls: 'bg-[#fef2f2] text-[#dc2626]', label: '⚠ CRITICAL' },
+  { min: 0.25, cls: 'bg-[#fff7ed] text-[#d97706]', label: '⚡ FOCUS' },
+  { min: 0.1, cls: 'bg-[#eef2ff] text-[#6366f1]', label: '📘 REVIEW' },
+  { min: 0, cls: 'bg-[#ecfdf5] text-[#059669]', label: '✓ OK' },
 ];
 
 export function RoiBadge({ roi }: { roi: number }) {

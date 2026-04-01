@@ -9,7 +9,7 @@ import {
   BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from 'recharts';
 
-const TOOLTIP_STYLE = { background: '#1a1d2e', border: '1px solid #1e1e3a', borderRadius: 8, color: '#e2e8f0' };
+const TOOLTIP_STYLE = { background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 8, color: '#1e293b' };
 
 interface TopicData {
   total_questions: number;
@@ -138,7 +138,7 @@ export default function TopicDeepDivePage() {
             {yearCountsArr.length > 0 ? (
               <ResponsiveContainer width="100%" height={260}>
                 <BarChart data={yearCountsArr}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#1e1e3a" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                   <XAxis dataKey="year" tick={{ fill: '#64748b', fontSize: 10 }} angle={-45} textAnchor="end" height={50} />
                   <YAxis tick={{ fill: '#64748b', fontSize: 12 }} allowDecimals={false} />
                   <Tooltip contentStyle={TOOLTIP_STYLE} />
@@ -154,7 +154,7 @@ export default function TopicDeepDivePage() {
             {diffTrendArr.length > 0 ? (
               <ResponsiveContainer width="100%" height={260}>
                 <LineChart data={diffTrendArr}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#1e1e3a" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                   <XAxis dataKey="year" tick={{ fill: '#64748b', fontSize: 10 }} angle={-45} textAnchor="end" height={50} />
                   <YAxis tick={{ fill: '#64748b', fontSize: 12 }} domain={[0, 5]} />
                   <Tooltip contentStyle={TOOLTIP_STYLE} />

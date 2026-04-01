@@ -15,7 +15,7 @@ const SUBJECT_COLORS: Record<string, string> = {
   Mathematics: '#a855f7', Botany: '#22c55e', Zoology: '#10b981',
 };
 
-const TOOLTIP_STYLE = { background: '#1a1d2e', border: '1px solid #1e1e3a', borderRadius: 8, color: '#e2e8f0' };
+const TOOLTIP_STYLE = { background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 8, color: '#1e293b' };
 
 export default function PredictionsPage() {
   const { exam } = useStore();
@@ -249,7 +249,7 @@ export default function PredictionsPage() {
             <h3 className="text-xs font-bold uppercase tracking-wider text-prajna-muted mb-4">Subject Weightage Timeline</h3>
             <ResponsiveContainer width="100%" height={320}>
               <AreaChart data={timelineChart}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#1e1e3a" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                 <XAxis dataKey="year" tick={{ fill: '#64748b', fontSize: 12 }} />
                 <YAxis tick={{ fill: '#64748b', fontSize: 12 }} unit="%" />
                 <Tooltip contentStyle={TOOLTIP_STYLE} />

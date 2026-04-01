@@ -1,9 +1,9 @@
 const ZONE_CONFIG: Record<string, { bg: string; text: string; label: string }> = {
-  M: { bg: '#0d2e22', text: '#00d4aa', label: 'Mastery' },
-  S: { bg: '#1a1a35', text: '#8b7fff', label: 'Strong' },
-  D: { bg: '#2e2800', text: '#ffd166', label: 'Developing' },
-  W: { bg: '#2e1800', text: '#ff9966', label: 'Weak' },
-  C: { bg: '#2e0d0d', text: '#ff6b6b', label: 'Critical' },
+  M: { bg: '#ecfdf5', text: '#059669', label: 'Mastery' },
+  S: { bg: '#eef2ff', text: '#6366f1', label: 'Strong' },
+  D: { bg: '#fefce8', text: '#d97706', label: 'Developing' },
+  W: { bg: '#fff7ed', text: '#ea580c', label: 'Weak' },
+  C: { bg: '#fef2f2', text: '#dc2626', label: 'Critical' },
 };
 
 export function zone(pct: number): string {

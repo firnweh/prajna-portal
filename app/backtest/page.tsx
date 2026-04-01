@@ -9,7 +9,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell,
 } from 'recharts';
 
-const TOOLTIP_STYLE = { background: '#1a1d2e', border: '1px solid #1e1e3a', borderRadius: 8, color: '#e2e8f0' };
+const TOOLTIP_STYLE = { background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 8, color: '#1e293b' };
 
 interface BacktestResult {
   summary: { hit_rate: number; coverage: number; matched_count: number; missed_count: number };
@@ -204,7 +204,7 @@ export default function BacktestPage() {
           ) : (
             <ResponsiveContainer width="100%" height={280}>
               <BarChart data={yearlyHits}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#1e1e3a" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                 <XAxis dataKey="year" tick={{ fill: '#64748b', fontSize: 12 }} />
                 <YAxis tick={{ fill: '#64748b', fontSize: 12 }} unit="%" domain={[0, 100]} />
                 <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(v) => [`${Number(v).toFixed(1)}%`, 'Hit Rate']} />

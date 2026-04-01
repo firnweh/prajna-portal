@@ -9,7 +9,7 @@ import {
   BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
 } from 'recharts';
 
-const TOOLTIP_STYLE = { background: '#1a1d2e', border: '1px solid #1e1e3a', borderRadius: 8, color: '#e2e8f0' };
+const TOOLTIP_STYLE = { background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 8, color: '#1e293b' };
 
 const BAND_COLORS: Record<string, string> = { A: '#22c55e', B: '#f59e0b', C: '#64748b' };
 const BAND_LABELS: Record<string, string> = { A: 'Must Study', B: 'Should Study', C: 'Optional' };
@@ -202,7 +202,7 @@ export default function LessonPlanPage() {
             <h3 className="text-xs font-bold uppercase tracking-wider text-prajna-muted mb-4">Band Distribution</h3>
             <ResponsiveContainer width="100%" height={280}>
               <BarChart data={bandDist}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#1e1e3a" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                 <XAxis dataKey="band" tick={{ fill: '#64748b', fontSize: 11 }} />
                 <YAxis tick={{ fill: '#64748b', fontSize: 12 }} allowDecimals={false} />
                 <Tooltip contentStyle={TOOLTIP_STYLE} />

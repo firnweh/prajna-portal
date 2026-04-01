@@ -22,9 +22,9 @@ export function ZoneDonut({ counts }: Props) {
       <ResponsiveContainer width="100%" height={180}>
         <PieChart>
           <Pie data={data} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius="55%" outerRadius="80%" paddingAngle={2}>
-            {data.map((d, i) => <Cell key={i} fill={d.color} stroke="#1a1d2e" strokeWidth={2} />)}
+            {data.map((d, i) => <Cell key={i} fill={d.color} stroke="#ffffff" strokeWidth={2} />)}
           </Pie>
-          <Tooltip contentStyle={{ background: '#1a1d2e', border: '1px solid #1e1e3a', borderRadius: 8, color: '#e2e8f0', fontSize: 12 }} />
+          <Tooltip contentStyle={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 8, color: '#1e293b', fontSize: 12 }} />
         </PieChart>
       </ResponsiveContainer>
       <div className="flex flex-wrap gap-2 justify-center mt-2">

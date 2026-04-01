@@ -2,11 +2,11 @@
 import type { StudentRecord } from '@/lib/types';
 
 const ZONE_COLORS: Record<string, { bg: string; text: string }> = {
-  M: { bg: '#0d2e22', text: '#00d4aa' },
-  S: { bg: '#1a1a35', text: '#8b7fff' },
-  D: { bg: '#2e2800', text: '#ffd166' },
-  W: { bg: '#2e1800', text: '#ff9966' },
-  C: { bg: '#2e0d0d', text: '#ff6b6b' },
+  M: { bg: '#ecfdf5', text: '#059669' },
+  S: { bg: '#eef2ff', text: '#6366f1' },
+  D: { bg: '#fefce8', text: '#d97706' },
+  W: { bg: '#fff7ed', text: '#ea580c' },
+  C: { bg: '#fef2f2', text: '#dc2626' },
 };
 
 function zone(pct: number): string {

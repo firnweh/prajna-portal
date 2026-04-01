@@ -47,15 +47,15 @@
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
 
-  --color-prajna-bg: #0f0f1a;
-  --color-prajna-surface: #131320;
-  --color-prajna-card: #1a1d2e;
-  --color-prajna-border: #1e1e3a;
-  --color-prajna-accent: #6366f1;
-  --color-prajna-teal: #00d4aa;
-  --color-prajna-warn: #ff6b6b;
-  --color-prajna-gold: #ffd166;
-  --color-prajna-text: #e2e8f0;
+  --color-prajna-bg: #f8fafc;
+  --color-prajna-surface: #ffffff;
+  --color-prajna-card: #ffffff;
+  --color-prajna-border: #e2e8f0;
+  --color-prajna-accent: #4f46e5;
+  --color-prajna-teal: #059669;
+  --color-prajna-warn: #dc2626;
+  --color-prajna-gold: #d97706;
+  --color-prajna-text: #1e293b;
   --color-prajna-muted: #64748b;
 
   --color-subject-physics: #f59e0b;
@@ -140,8 +140,8 @@
     @apply border-border outline-ring/50;
   }
   body {
-    background-color: #0f0f1a;
-    color: #e2e8f0;
+    background-color: #f8fafc;
+    color: #1e293b;
   }
   html {
     @apply font-sans;
