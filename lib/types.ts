@@ -19,9 +19,19 @@ export interface StudentRecord {
     consistency_score: number;
     latest_percentage: number;
     trajectory: number[];
+    best_rank?: number;
+    latest_rank?: number;
   };
+  abilities?: Record<string, number>;
   subjects: Record<string, { acc: number }>;
   chapters: Record<string, [number, string, number]>;
+  slm_focus?: Array<{
+    chapter: string;
+    accuracy: number;
+    level: string;
+    slm_importance: number;
+    slm_priority_score: number;
+  }>;
 }
 
 export interface Prediction {
