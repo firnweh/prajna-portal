@@ -14,6 +14,7 @@ export const studentNav: NavItem[] = [
 
 export const orgNav: NavItem[] = [
   { label: 'Organisation', href: '/org', icon: '📊' },
+  { label: 'At-Risk Students', href: '/org/risk', icon: '⚠' },
   { label: 'Predictions', href: '/predictions', icon: '🔮' },
   { label: 'Lesson Plan', href: '/predictions?tab=lesson', icon: '📚' },
   { label: 'Mistake Analysis', href: '/predictions?tab=mistakes', icon: '🧪' },
