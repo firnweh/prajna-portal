@@ -3,7 +3,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { Header } from '@/components/layout/Header';
 import { intelligence } from '@/lib/api';
-import { renderLatex } from '@/lib/latex';
 import 'katex/dist/katex.min.css';
 import { useStore } from '@/lib/store';
 
@@ -37,38 +36,61 @@ const QUICK_ACTIONS = [
   { icon: '\u{1F52C}', label: 'Topic Deep Dive', template: 'Deep dive into ' },
 ];
 
-function formatMessage(text: string) {
-  // KaTeX renders to safe HTML (no script injection possible).
-  // Content is from our own copilot API, not user input.
-  const parts = text.split(/(```[\s\S]*?```|`[^`]+`|\*\*[^*]+\*\*)/g);
-  return parts.map((part, i) => {
-    if (part.startsWith('```') && part.endsWith('```')) {
-      const code = part.slice(3, -3).replace(/^\w+\n/, '');
-      return (
-        <pre key={i} className="bg-prajna-surface rounded-lg p-3 my-2 text-sm overflow-x-auto font-mono text-prajna-teal">
-          {code}
-        </pre>
-      );
-    }
-    if (part.startsWith('`') && part.endsWith('`')) {
-      return (
-        <code key={i} className="bg-prajna-surface px-1.5 py-0.5 rounded text-sm font-mono text-prajna-gold">
-          {part.slice(1, -1)}
-        </code>
-      );
-    }
-    if (part.startsWith('**') && part.endsWith('**')) {
-      const inner = renderLatex(part.slice(2, -2));
-      // eslint-disable-next-line react/no-danger -- KaTeX output is safe (no user input)
-      return <strong key={i} className="font-semibold text-prajna-text" dangerouslySetInnerHTML={{ __html: inner }} />;
-    }
-    // Render LaTeX in regular text
-    const rendered = renderLatex(part);
-    // eslint-disable-next-line react/no-danger -- KaTeX output is safe (no user input)
-    return (
-      <span key={i} dangerouslySetInnerHTML={{ __html: rendered.replace(/\n/g, '<br/>') }} />
-    );
-  });
+function formatMessageToHtml(text: string): string {
+  // Convert markdown-like formatting to HTML, then render LaTeX
+  let html = text;
+
+  // Escape HTML entities first (prevent injection)
+  html = html.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+  // Code blocks
+  html = html.replace(/```([\s\S]*?)```/g, '<pre class="bg-gray-100 rounded-lg p-3 my-2 text-sm overflow-x-auto font-mono text-prajna-teal">$1</pre>');
+
+  // Inline code
+  html = html.replace(/`([^`]+)`/g, '<code class="bg-gray-100 px-1.5 py-0.5 rounded text-sm font-mono">$1</code>');
+
+  // Bold
+  html = html.replace(/\*\*([^*]+)\*\*/g, '<strong class="font-semibold">$1</strong>');
+
+  // Italic with *
+  html = html.replace(/\*([^*]+)\*/g, '<em class="italic text-prajna-muted">$1</em>');
+
+  // Newlines
+  html = html.replace(/\n/g, '<br/>');
+
+  // Now render LaTeX — KaTeX produces safe HTML (see lib/latex.ts)
+  try {
+    const katex = require('katex');
+
+    // Display math: \[ ... \]
+    html = html.replace(/\\\[([\s\S]*?)\\\]/g, (_, math: string) => {
+      try { return katex.renderToString(math.trim(), { displayMode: true, throwOnError: false }); }
+      catch { return `\\[${math}\\]`; }
+    });
+
+    // Inline math: \( ... \)
+    html = html.replace(/\\\((.*?)\\\)/g, (_, math: string) => {
+      try { return katex.renderToString(math.trim(), { displayMode: false, throwOnError: false }); }
+      catch { return `\\(${math}\\)`; }
+    });
+
+    // Display math: $$ ... $$
+    html = html.replace(/\$\$([\s\S]*?)\$\$/g, (_, math: string) => {
+      try { return katex.renderToString(math.trim(), { displayMode: true, throwOnError: false }); }
+      catch { return `$$${math}$$`; }
+    });
+  } catch {
+    // KaTeX not available — show raw LaTeX
+  }
+
+  return html;
+}
+
+function MessageContent({ text }: { text: string }) {
+  const html = formatMessageToHtml(text);
+  // KaTeX output is safe HTML — no script injection possible.
+  // Content from our own copilot API, not arbitrary user input.
+  return <div dangerouslySetInnerHTML={{ __html: html }} />;
 }
 
 export default function CopilotPage() {
@@ -119,7 +141,7 @@ export default function CopilotPage() {
     setLoading(true);
 
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 30000);
+    const timeout = setTimeout(() => controller.abort(), 60000);
 
     try {
       const res = await intelligence('/api/v1/copilot/ask', {
@@ -187,7 +209,7 @@ export default function CopilotPage() {
                       : 'bg-prajna-card text-prajna-text rounded-bl-md'
                   }`}
                 >
-                  <div>{formatMessage(msg.content)}</div>
+                  <MessageContent text={msg.content} />
 
                   {/* Insights */}
                   {msg.insights && msg.insights.length > 0 && (
