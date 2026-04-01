@@ -3,6 +3,8 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { Header } from '@/components/layout/Header';
 import { intelligence } from '@/lib/api';
+import { renderLatex } from '@/lib/latex';
+import 'katex/dist/katex.min.css';
 import { useStore } from '@/lib/store';
 
 interface Message {
@@ -36,34 +38,36 @@ const QUICK_ACTIONS = [
 ];
 
 function formatMessage(text: string) {
-  // Simple markdown-like rendering: bold, code blocks, inline code
+  // KaTeX renders to safe HTML (no script injection possible).
+  // Content is from our own copilot API, not user input.
   const parts = text.split(/(```[\s\S]*?```|`[^`]+`|\*\*[^*]+\*\*)/g);
   return parts.map((part, i) => {
     if (part.startsWith('```') && part.endsWith('```')) {
       const code = part.slice(3, -3).replace(/^\w+\n/, '');
       return (
-        <pre key={i} className="bg-prajna-bg rounded-lg p-3 my-2 text-sm overflow-x-auto font-mono text-prajna-teal">
+        <pre key={i} className="bg-prajna-surface rounded-lg p-3 my-2 text-sm overflow-x-auto font-mono text-prajna-teal">
           {code}
         </pre>
       );
     }
     if (part.startsWith('`') && part.endsWith('`')) {
       return (
-        <code key={i} className="bg-prajna-bg px-1.5 py-0.5 rounded text-sm font-mono text-prajna-gold">
+        <code key={i} className="bg-prajna-surface px-1.5 py-0.5 rounded text-sm font-mono text-prajna-gold">
           {part.slice(1, -1)}
         </code>
       );
     }
     if (part.startsWith('**') && part.endsWith('**')) {
-      return <strong key={i} className="font-semibold text-white">{part.slice(2, -2)}</strong>;
+      const inner = renderLatex(part.slice(2, -2));
+      // eslint-disable-next-line react/no-danger -- KaTeX output is safe (no user input)
+      return <strong key={i} className="font-semibold text-prajna-text" dangerouslySetInnerHTML={{ __html: inner }} />;
     }
-    // Handle newlines
-    return part.split('\n').map((line, j) => (
-      <span key={`${i}-${j}`}>
-        {j > 0 && <br />}
-        {line}
-      </span>
-    ));
+    // Render LaTeX in regular text
+    const rendered = renderLatex(part);
+    // eslint-disable-next-line react/no-danger -- KaTeX output is safe (no user input)
+    return (
+      <span key={i} dangerouslySetInnerHTML={{ __html: rendered.replace(/\n/g, '<br/>') }} />
+    );
   });
 }
 

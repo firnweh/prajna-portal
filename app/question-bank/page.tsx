@@ -3,6 +3,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Header } from '@/components/layout/Header';
 import { intelligence } from '@/lib/api';
+import { renderWithLatex } from '@/lib/latex';
+import 'katex/dist/katex.min.css';
 
 interface Question {
   qbgid: string;
@@ -33,7 +35,7 @@ function QuestionCard({ q }: { q: Question }) {
 
   return (
     <div className="bg-prajna-card border border-prajna-border rounded-xl p-5 space-y-3">
-      <p className="text-sm text-prajna-text leading-relaxed">{q.question_clean}</p>
+      <p className="text-sm text-prajna-text leading-relaxed [&_.katex]:text-prajna-accent" dangerouslySetInnerHTML={{ __html: renderWithLatex(q.question_clean) }} />
       <div className="flex flex-wrap gap-2">
         <span className="text-[10px] px-2 py-0.5 rounded bg-prajna-accent/15 text-prajna-accent">
           {q.subject}
@@ -62,14 +64,10 @@ function QuestionCard({ q }: { q: Question }) {
         )}
       </div>
       {showAnswer && (
-        <div className="text-sm text-prajna-teal bg-prajna-surface rounded-lg p-3 border border-prajna-border">
-          {q.answer_clean}
-        </div>
+        <div className="text-sm text-prajna-teal bg-prajna-surface rounded-lg p-3 border border-prajna-border" dangerouslySetInnerHTML={{ __html: renderWithLatex(q.answer_clean || '') }} />
       )}
       {showSolution && (
-        <div className="text-sm text-prajna-text bg-prajna-surface rounded-lg p-3 border border-prajna-border whitespace-pre-wrap">
-          {q.text_solution || q.gpt_analysis}
-        </div>
+        <div className="text-sm text-prajna-text bg-prajna-surface rounded-lg p-3 border border-prajna-border" dangerouslySetInnerHTML={{ __html: renderWithLatex(q.text_solution || q.gpt_analysis || '') }} />
       )}
     </div>
   );

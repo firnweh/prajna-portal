@@ -3,6 +3,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Header } from '@/components/layout/Header';
 import { intelligence } from '@/lib/api';
+import { renderWithLatex } from '@/lib/latex';
+import 'katex/dist/katex.min.css';
 
 interface Question {
   qbgid: string;
@@ -246,7 +248,7 @@ export default function MockTestPage() {
               </span>
             </div>
 
-            <p className="text-sm text-prajna-text leading-relaxed">{currentQ.question_clean}</p>
+            <p className="text-sm text-prajna-text leading-relaxed" dangerouslySetInnerHTML={{__html: renderWithLatex(currentQ.question_clean)}} />
 
             {hasOptions && options.length > 0 ? (
               <div className="space-y-2">
@@ -389,7 +391,7 @@ export default function MockTestPage() {
                       {isCorrect ? 'Correct' : userAns ? 'Incorrect' : 'Skipped'}
                     </span>
                   </div>
-                  <p className="text-sm text-prajna-text">{q.question_clean}</p>
+                  <p className="text-sm text-prajna-text" dangerouslySetInnerHTML={{__html: renderWithLatex(q.question_clean)}} />
                   <div className="flex flex-col gap-1 text-xs">
                     <div>
                       <span className="text-prajna-muted">Your answer: </span>
