@@ -9,89 +9,77 @@ import { useStore } from '@/lib/store';
 interface Message {
   role: 'user' | 'assistant';
   content: string;
-  insights?: { title: string; detail: string }[];
+  insights?: { title: string; narrative: string }[];
   followUps?: string[];
 }
 
-interface PracticeQuestion {
-  qbgid: string;
-  question_clean: string;
-  answer_clean: string;
-  subject: string;
-  difficulty: string;
-}
-
-const SUGGESTED_TOPICS = [
-  'Explain thermodynamics laws with examples',
-  'Organic chemistry reaction mechanisms',
-  'Electromagnetic induction concepts',
-  'Human physiology - nervous system',
-  'Coordinate geometry problem-solving tips',
-];
-
-const QUICK_ACTIONS = [
-  { icon: '\u{1F4DD}', label: 'Practice Problems', template: 'Give me 5 practice problems on ' },
-  { icon: '\u{1F4D6}', label: 'Explain a Concept', template: 'Explain the concept of  in simple terms' },
-  { icon: '\u{1F3AF}', label: 'Exam Strategy', template: 'What topics should I prioritize for NEET 2026?' },
-  { icon: '\u{1F52C}', label: 'Topic Deep Dive', template: 'Deep dive into ' },
-];
-
+// ── Format message with markdown + KaTeX ──────────────────────
 function formatMessageToHtml(text: string): string {
-  // Convert markdown-like formatting to HTML, then render LaTeX
   let html = text;
-
-  // Escape HTML entities first (prevent injection)
   html = html.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-
-  // Code blocks
-  html = html.replace(/```([\s\S]*?)```/g, '<pre class="bg-gray-100 rounded-lg p-3 my-2 text-sm overflow-x-auto font-mono text-prajna-teal">$1</pre>');
-
-  // Inline code
-  html = html.replace(/`([^`]+)`/g, '<code class="bg-gray-100 px-1.5 py-0.5 rounded text-sm font-mono">$1</code>');
-
-  // Bold
-  html = html.replace(/\*\*([^*]+)\*\*/g, '<strong class="font-semibold">$1</strong>');
-
-  // Italic with *
-  html = html.replace(/\*([^*]+)\*/g, '<em class="italic text-prajna-muted">$1</em>');
-
-  // Newlines
+  html = html.replace(/```([\s\S]*?)```/g, '<pre class="bg-gray-50 border border-gray-200 rounded-lg p-3 my-3 text-[13px] overflow-x-auto font-mono text-gray-800">$1</pre>');
+  html = html.replace(/`([^`]+)`/g, '<code class="bg-gray-100 px-1.5 py-0.5 rounded text-[13px] font-mono text-indigo-700">$1</code>');
+  html = html.replace(/\*\*([^*]+)\*\*/g, '<strong class="font-semibold text-gray-900">$1</strong>');
+  html = html.replace(/\*([^*]+)\*/g, '<em class="italic text-gray-500">$1</em>');
   html = html.replace(/\n/g, '<br/>');
 
-  // Now render LaTeX — KaTeX produces safe HTML (see lib/latex.ts)
   try {
     const katex = require('katex');
-
-    // Display math: \[ ... \]
     html = html.replace(/\\\[([\s\S]*?)\\\]/g, (_, math: string) => {
       try { return katex.renderToString(math.trim(), { displayMode: true, throwOnError: false }); }
       catch { return `\\[${math}\\]`; }
     });
-
-    // Inline math: \( ... \)
     html = html.replace(/\\\((.*?)\\\)/g, (_, math: string) => {
       try { return katex.renderToString(math.trim(), { displayMode: false, throwOnError: false }); }
       catch { return `\\(${math}\\)`; }
     });
-
-    // Display math: $$ ... $$
     html = html.replace(/\$\$([\s\S]*?)\$\$/g, (_, math: string) => {
       try { return katex.renderToString(math.trim(), { displayMode: true, throwOnError: false }); }
       catch { return `$$${math}$$`; }
     });
-  } catch {
-    // KaTeX not available — show raw LaTeX
-  }
+  } catch { /* KaTeX not available */ }
 
   return html;
 }
 
 function MessageContent({ text }: { text: string }) {
   const html = formatMessageToHtml(text);
-  // KaTeX output is safe HTML — no script injection possible.
-  // Content from our own copilot API, not arbitrary user input.
-  return <div dangerouslySetInnerHTML={{ __html: html }} />;
+  return <div className="prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: html }} />;
 }
+
+// ── Suggested topics for empty state ──────────────────────────
+const SUGGESTIONS = [
+  { icon: '⚡', label: 'Explain Ohm\'s law with formula', category: 'Physics' },
+  { icon: '🧪', label: 'SN1 vs SN2 reaction mechanism', category: 'Chemistry' },
+  { icon: '🧬', label: 'Stages of meiosis cell division', category: 'Biology' },
+  { icon: '📐', label: 'Quadratic formula derivation', category: 'Mathematics' },
+  { icon: '🎯', label: 'Which topics to prioritize for NEET 2026?', category: 'Strategy' },
+  { icon: '📊', label: 'Predict top Physics chapters for JEE', category: 'Predictions' },
+];
+
+const QUICK_ACTIONS = [
+  { icon: '📝', label: 'Practice Problems', desc: 'Get practice questions on any topic', template: 'Give me 5 practice problems on ' },
+  { icon: '📖', label: 'Explain Concept', desc: 'Clear explanation with examples', template: 'Explain the concept of ' },
+  { icon: '🎯', label: 'Exam Strategy', desc: 'Data-driven study advice', template: 'What topics should I prioritize for NEET 2026?' },
+  { icon: '📷', label: 'Upload Photo', desc: 'OCR + solve from image', template: '__UPLOAD__' },
+];
+
+// ── Thinking stages ────────────────────────────────────────────
+const TEXT_STAGES = [
+  { icon: '🔍', text: 'Searching 1.14M questions...' },
+  { icon: '📚', text: 'Found matches. Retrieving solutions...' },
+  { icon: '🧠', text: 'Analyzing with PRAJNA SLM...' },
+  { icon: '✍️', text: 'Formatting answer with LaTeX...' },
+  { icon: '⏳', text: 'Polishing response...' },
+];
+
+const OCR_STAGES = [
+  { icon: '📷', text: 'Processing image with Qwen OCR...' },
+  { icon: '📝', text: 'Extracting text and formulas...' },
+  { icon: '🔍', text: 'Searching question bank...' },
+  { icon: '🧠', text: 'PRAJNA SLM solving...' },
+  { icon: '✍️', text: 'Formatting with LaTeX...' },
+];
 
 export default function CopilotPage() {
   const { exam, year } = useStore();
@@ -99,44 +87,18 @@ export default function CopilotPage() {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [thinkingStage, setThinkingStage] = useState(0);
-  const [practiceMode, setPracticeMode] = useState(false);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [practiceQ, setPracticeQ] = useState<PracticeQuestion | null>(null);
-  const [showPracticeAnswer, setShowPracticeAnswer] = useState(false);
-  const [practiceLoading, setPracticeLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    scrollToBottom();
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, loading]);
 
-  const fetchPracticeQuestion = useCallback(async () => {
-    setPracticeLoading(true);
-    setShowPracticeAnswer(false);
-    try {
-      const res = await intelligence('/api/v1/qbank/random?count=1');
-      const data = await res.json();
-      if (data.questions?.length) {
-        setPracticeQ(data.questions[0]);
-      }
-    } catch {
-      setPracticeQ(null);
-    } finally {
-      setPracticeLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (practiceMode) fetchPracticeQuestion();
-  }, [practiceMode, fetchPracticeQuestion]);
-
-  const sendMessage = async () => {
-    const q = input.trim();
+  // ── Send text message ──────────────────────────────────────
+  const sendMessage = async (overrideText?: string) => {
+    const q = (overrideText || input).trim();
     if (!q || loading) return;
 
     setInput('');
@@ -144,12 +106,11 @@ export default function CopilotPage() {
     setLoading(true);
     setThinkingStage(0);
 
-    // Advance thinking stages over time to show progress
     const stageTimers = [
-      setTimeout(() => setThinkingStage(1), 2000),   // Searching...
-      setTimeout(() => setThinkingStage(2), 5000),   // Analyzing...
-      setTimeout(() => setThinkingStage(3), 12000),  // Generating...
-      setTimeout(() => setThinkingStage(4), 25000),  // Almost done...
+      setTimeout(() => setThinkingStage(1), 2000),
+      setTimeout(() => setThinkingStage(2), 5000),
+      setTimeout(() => setThinkingStage(3), 12000),
+      setTimeout(() => setThinkingStage(4), 25000),
     ];
 
     const controller = new AbortController();
@@ -184,8 +145,8 @@ export default function CopilotPage() {
     } catch (err: unknown) {
       const msg =
         err instanceof DOMException && err.name === 'AbortError'
-          ? 'Request timed out. Please try again.'
-          : 'Something went wrong. Please try again.';
+          ? 'Request timed out. The AI is still processing — try again in a moment.'
+          : 'Something went wrong. Check that the Intelligence API is running on port 8001.';
       setMessages(prev => [...prev, { role: 'assistant', content: msg }]);
     } finally {
       stageTimers.forEach(clearTimeout);
@@ -194,325 +155,285 @@ export default function CopilotPage() {
     }
   };
 
+  // ── Handle file upload ──────────────────────────────────────
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     const ext = file.name.split('.').pop()?.toLowerCase();
     if (!['jpg', 'jpeg', 'png', 'pdf', 'webp'].includes(ext || '')) {
-      setMessages(prev => [...prev, {
-        role: 'assistant',
-        content: 'Unsupported file type. Please upload a .jpg, .png, or .pdf file.',
-      }]);
+      setMessages(prev => [...prev, { role: 'assistant', content: 'Unsupported file type. Use .jpg, .png, or .pdf.' }]);
       return;
     }
 
     setUploading(true);
     setLoading(true);
     setThinkingStage(0);
+    setMessages(prev => [...prev, { role: 'user', content: `📎 Uploaded: ${file.name}` }]);
 
-    // Show the upload as a user message
-    const fileName = file.name;
-    const isImage = ['jpg', 'jpeg', 'png', 'webp'].includes(ext || '');
-    setMessages(prev => [...prev, {
-      role: 'user',
-      content: `📎 Uploaded: ${fileName} ${isImage ? '(image)' : '(PDF)'}`,
-    }]);
-
-    // Thinking stages for OCR
     const stageTimers = [
-      setTimeout(() => setThinkingStage(1), 2000),   // OCR extracting...
-      setTimeout(() => setThinkingStage(2), 8000),    // Text extracted...
-      setTimeout(() => setThinkingStage(3), 15000),   // Searching...
-      setTimeout(() => setThinkingStage(4), 25000),   // Generating...
+      setTimeout(() => setThinkingStage(1), 2000),
+      setTimeout(() => setThinkingStage(2), 8000),
+      setTimeout(() => setThinkingStage(3), 15000),
+      setTimeout(() => setThinkingStage(4), 25000),
     ];
 
     try {
       const formData = new FormData();
       formData.append('file', file);
       formData.append('exam_type', exam);
-      if (exam === 'neet') formData.append('subject_filter', '');
 
       const res = await fetch('/api/proxy/intel/api/v1/copilot/ocr-solve', {
         method: 'POST',
         body: formData,
       });
-
       const data = await res.json();
 
       if (data.success) {
-        const extractedNote = data.extracted_text
-          ? `\n\n📝 **Extracted text:**\n${data.extracted_text.slice(0, 300)}${data.extracted_text.length > 300 ? '...' : ''}`
+        const extracted = data.extracted_text
+          ? `\n\n📝 **Extracted text:**\n${data.extracted_text.slice(0, 400)}${data.extracted_text.length > 400 ? '...' : ''}`
           : '';
-
         setMessages(prev => [...prev, {
           role: 'assistant',
-          content: (data.answer || 'Could not find a matching solution.') + extractedNote,
+          content: (data.answer || 'Could not find a matching solution.') + extracted,
           followUps: data.follow_up_questions,
         }]);
       } else {
-        setMessages(prev => [...prev, {
-          role: 'assistant',
-          content: `⚠️ ${data.error || 'Could not process the file. Try a clearer image.'}`,
-        }]);
+        setMessages(prev => [...prev, { role: 'assistant', content: `⚠️ ${data.error || 'Could not process the file.'}` }]);
       }
     } catch {
-      setMessages(prev => [...prev, {
-        role: 'assistant',
-        content: 'Failed to process the file. Ensure the Intelligence API and Qwen model are running.',
-      }]);
+      setMessages(prev => [...prev, { role: 'assistant', content: 'Failed to process. Ensure Intelligence API and Qwen model are running.' }]);
     } finally {
       stageTimers.forEach(clearTimeout);
       setUploading(false);
       setLoading(false);
       setThinkingStage(0);
-      // Reset file input
       if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
 
+  const stages = uploading ? OCR_STAGES : TEXT_STAGES;
+  const hasMessages = messages.length > 0 || loading;
+
   return (
-    <div className="flex flex-col h-screen">
+    <div className="flex flex-col h-screen bg-prajna-bg">
       <Header title="Ask PRAJNA" />
 
-      <div className="flex flex-1 overflow-hidden">
-        {/* Left panel - Chat (65%) */}
-        <div className="w-[65%] flex flex-col border-r border-prajna-border">
-          {/* Messages */}
-          <div className="flex-1 overflow-y-auto p-6 space-y-4">
-            {messages.length === 0 && (
-              <div className="flex flex-col items-center justify-center h-full text-center text-prajna-muted">
-                <div className="text-5xl mb-4">{'\u{1F916}'}</div>
-                <h2 className="text-xl font-semibold text-prajna-text mb-2">Ask me anything</h2>
-                <p className="text-sm max-w-md">
-                  I can help you understand concepts, solve problems, plan your study strategy,
-                  and practice for {exam.toUpperCase()} {year}.
+      <div className="flex-1 overflow-y-auto">
+        <div className="max-w-3xl mx-auto px-4">
+
+          {/* ── Empty State ──────────────────────────────── */}
+          {!hasMessages && (
+            <div className="pt-16 pb-8">
+              {/* Hero */}
+              <div className="text-center mb-10">
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-3xl mx-auto mb-4 shadow-lg shadow-indigo-200">
+                  🧠
+                </div>
+                <h1 className="text-2xl font-bold text-gray-900 mb-2">Ask PRAJNA anything</h1>
+                <p className="text-gray-500 text-sm max-w-md mx-auto">
+                  AI tutor powered by 1.14M NEET/JEE questions. Ask concepts, solve problems,
+                  get exam strategy, or upload a photo of any question.
                 </p>
               </div>
-            )}
 
-            {messages.map((msg, i) => (
-              <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                <div
-                  className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
+              {/* Quick Actions */}
+              <div className="grid grid-cols-4 gap-3 mb-8">
+                {QUICK_ACTIONS.map((action, i) => (
+                  <button
+                    key={i}
+                    onClick={() => {
+                      if (action.template === '__UPLOAD__') {
+                        fileInputRef.current?.click();
+                      } else {
+                        setInput(action.template);
+                        inputRef.current?.focus();
+                      }
+                    }}
+                    className="flex flex-col items-center gap-2 p-4 rounded-xl border border-gray-200 hover:border-indigo-300 hover:bg-indigo-50/50 transition-all text-center group"
+                  >
+                    <span className="text-2xl group-hover:scale-110 transition-transform">{action.icon}</span>
+                    <span className="text-xs font-semibold text-gray-800">{action.label}</span>
+                    <span className="text-[10px] text-gray-400">{action.desc}</span>
+                  </button>
+                ))}
+              </div>
+
+              {/* Suggested Topics */}
+              <div>
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Try asking</p>
+                <div className="grid grid-cols-2 gap-2">
+                  {SUGGESTIONS.map((s, i) => (
+                    <button
+                      key={i}
+                      onClick={() => sendMessage(s.label)}
+                      className="flex items-center gap-3 px-4 py-3 rounded-xl border border-gray-200 hover:border-indigo-300 hover:bg-indigo-50/30 transition-all text-left group"
+                    >
+                      <span className="text-lg">{s.icon}</span>
+                      <div className="min-w-0">
+                        <span className="text-sm text-gray-700 group-hover:text-indigo-700 block truncate">{s.label}</span>
+                        <span className="text-[10px] text-gray-400">{s.category}</span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ── Messages ─────────────────────────────────── */}
+          {hasMessages && (
+            <div className="py-6 space-y-6">
+              {messages.map((msg, i) => (
+                <div key={i} className={`flex gap-3 ${msg.role === 'user' ? 'justify-end' : ''}`}>
+                  {/* Avatar */}
+                  {msg.role === 'assistant' && (
+                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-sm text-white flex-shrink-0 mt-0.5">
+                      🧠
+                    </div>
+                  )}
+
+                  {/* Bubble */}
+                  <div className={`max-w-[85%] ${
                     msg.role === 'user'
-                      ? 'bg-prajna-accent text-white rounded-br-md'
-                      : 'bg-prajna-card text-prajna-text rounded-bl-md'
-                  }`}
-                >
-                  <MessageContent text={msg.content} />
+                      ? 'bg-indigo-600 text-white rounded-2xl rounded-br-md px-4 py-2.5'
+                      : 'bg-white border border-gray-200 rounded-2xl rounded-bl-md px-5 py-4 shadow-sm'
+                  }`}>
+                    <div className={msg.role === 'user' ? 'text-sm' : 'text-[14px] leading-relaxed text-gray-800'}>
+                      <MessageContent text={msg.content} />
+                    </div>
 
-                  {/* Insights */}
-                  {msg.insights && msg.insights.length > 0 && (
-                    <div className="mt-3 grid gap-2">
-                      {msg.insights.map((ins, j) => (
-                        <div key={j} className="bg-prajna-surface rounded-lg p-2.5 border border-prajna-border">
-                          <div className="text-xs font-semibold text-prajna-teal">{ins.title}</div>
-                          <div className="text-xs text-prajna-muted mt-0.5">{ins.detail}</div>
+                    {/* Insights */}
+                    {msg.insights && msg.insights.length > 0 && (
+                      <div className="mt-3 space-y-2">
+                        {msg.insights.map((ins, j) => (
+                          <div key={j} className="bg-indigo-50 rounded-lg p-3 border border-indigo-100">
+                            <div className="text-xs font-semibold text-indigo-700">{ins.title}</div>
+                            <div className="text-xs text-indigo-600/70 mt-0.5">{ins.narrative}</div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Follow-ups */}
+                    {msg.followUps && msg.followUps.length > 0 && (
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {msg.followUps.map((fq, j) => (
+                          <button
+                            key={j}
+                            onClick={() => sendMessage(fq)}
+                            className="text-xs bg-indigo-50 text-indigo-700 px-3 py-1.5 rounded-full hover:bg-indigo-100 border border-indigo-100 transition-colors"
+                          >
+                            {fq}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* User avatar */}
+                  {msg.role === 'user' && (
+                    <div className="w-8 h-8 rounded-lg bg-indigo-100 flex items-center justify-center text-xs font-bold text-indigo-700 flex-shrink-0 mt-0.5">
+                      You
+                    </div>
+                  )}
+                </div>
+              ))}
+
+              {/* Thinking indicator */}
+              {loading && (
+                <div className="flex gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-sm text-white flex-shrink-0 animate-pulse">
+                    🧠
+                  </div>
+                  <div className="bg-white border border-gray-200 rounded-2xl rounded-bl-md px-5 py-4 shadow-sm max-w-sm">
+                    <div className="space-y-2.5">
+                      {stages.map((stage, i) => (
+                        <div
+                          key={i}
+                          className={`flex items-center gap-2.5 text-sm transition-all duration-500 ${
+                            i < thinkingStage ? 'text-emerald-600' :
+                            i === thinkingStage ? 'text-indigo-600 font-medium' :
+                            'text-gray-300'
+                          }`}
+                        >
+                          <span className={`text-base ${i === thinkingStage ? 'animate-pulse' : ''}`}>
+                            {i < thinkingStage ? '✓' : stage.icon}
+                          </span>
+                          <span>{stage.text}</span>
+                          {i === thinkingStage && (
+                            <span className="inline-flex gap-0.5 ml-auto">
+                              <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                              <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                              <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                            </span>
+                          )}
                         </div>
                       ))}
                     </div>
-                  )}
-
-                  {/* Follow-up questions */}
-                  {msg.followUps && msg.followUps.length > 0 && (
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      {msg.followUps.map((fq, j) => (
-                        <button
-                          key={j}
-                          onClick={() => setInput(fq)}
-                          className="text-xs bg-prajna-accent/10 text-prajna-accent px-3 py-1.5 rounded-full hover:bg-prajna-accent/20 transition-colors"
-                        >
-                          {fq}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-            ))}
-
-            {loading && (
-              <div className="flex justify-start">
-                <div className="bg-prajna-card rounded-2xl rounded-bl-md px-4 py-3 max-w-md">
-                  <div className="space-y-2">
-                    {(uploading ? [
-                      { icon: '📷', text: 'Processing image with Qwen OCR...', active: thinkingStage >= 0 },
-                      { icon: '📝', text: 'Extracting text and math formulas...', active: thinkingStage >= 1 },
-                      { icon: '🔍', text: 'Searching 1.14M questions for matches...', active: thinkingStage >= 2 },
-                      { icon: '🧠', text: 'PRAJNA SLM structuring the solution...', active: thinkingStage >= 3 },
-                      { icon: '✍️', text: 'Formatting with LaTeX...', active: thinkingStage >= 4 },
-                    ] : [
-                      { icon: '🔍', text: 'Searching 1.14M questions...', active: thinkingStage >= 0 },
-                      { icon: '📚', text: 'Found relevant questions. Retrieving solutions...', active: thinkingStage >= 1 },
-                      { icon: '🧠', text: 'Analyzing with PRAJNA SLM...', active: thinkingStage >= 2 },
-                      { icon: '✍️', text: 'Structuring answer with LaTeX formatting...', active: thinkingStage >= 3 },
-                      { icon: '⏳', text: 'Almost done — polishing response...', active: thinkingStage >= 4 },
-                    ]).map((stage, i) => (
-                      <div
-                        key={i}
-                        className={`flex items-center gap-2 text-sm transition-all duration-300 ${
-                          stage.active
-                            ? i === thinkingStage
-                              ? 'text-prajna-accent font-medium'
-                              : 'text-prajna-teal'
-                            : 'text-prajna-muted/30'
-                        }`}
-                      >
-                        <span className={i === thinkingStage ? 'animate-pulse' : ''}>{stage.icon}</span>
-                        <span>{stage.text}</span>
-                        {i < thinkingStage && <span className="text-prajna-teal">✓</span>}
-                        {i === thinkingStage && (
-                          <span className="inline-flex gap-0.5 ml-1">
-                            <span className="w-1 h-1 bg-prajna-accent rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                            <span className="w-1 h-1 bg-prajna-accent rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                            <span className="w-1 h-1 bg-prajna-accent rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
-                          </span>
-                        )}
-                      </div>
-                    ))}
                   </div>
                 </div>
-              </div>
-            )}
-            <div ref={messagesEndRef} />
-          </div>
+              )}
 
-          {/* Input bar */}
-          <div className="border-t border-prajna-border p-4">
-            <div className="flex gap-2">
-              {/* Hidden file input */}
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept=".jpg,.jpeg,.png,.pdf,.webp"
-                onChange={handleFileUpload}
-                className="hidden"
-              />
-              {/* Upload button */}
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                disabled={loading || uploading}
-                className="bg-prajna-card border border-prajna-border hover:border-prajna-accent disabled:opacity-40 text-prajna-muted hover:text-prajna-accent px-3 py-3 rounded-xl text-lg transition-colors"
-                title="Upload photo or PDF of a question"
-              >
-                📷
-              </button>
-              <input
-                type="text"
-                value={input}
-                onChange={e => setInput(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && !e.shiftKey && sendMessage()}
-                placeholder="Ask a question or upload a photo..."
-                className="flex-1 bg-prajna-card border border-prajna-border rounded-xl px-4 py-3 text-sm text-prajna-text placeholder:text-prajna-muted focus:outline-none focus:ring-2 focus:ring-prajna-accent/50"
-              />
-              <button
-                onClick={sendMessage}
-                disabled={loading || !input.trim()}
-                className="bg-prajna-accent hover:bg-prajna-accent/90 disabled:opacity-40 text-white px-6 py-3 rounded-xl text-sm font-medium transition-colors"
-              >
-                Send
-              </button>
+              <div ref={messagesEndRef} />
             </div>
-            <p className="text-[0.65rem] text-prajna-muted mt-1.5 ml-14">
-              📷 Upload a photo or PDF of any question — Qwen OCR extracts the text, PRAJNA SLM solves it
-            </p>
-          </div>
+          )}
         </div>
+      </div>
 
-        {/* Right panel - Context (35%) */}
-        <div className="w-[35%] overflow-y-auto p-6 space-y-6">
-          {/* Suggested Topics */}
-          <div>
-            <h3 className="text-sm font-semibold text-prajna-text mb-3">Suggested Topics</h3>
-            <div className="space-y-2">
-              {SUGGESTED_TOPICS.map((topic, i) => (
-                <button
-                  key={i}
-                  onClick={() => setInput(topic)}
-                  className="w-full text-left text-xs bg-prajna-card hover:bg-prajna-card/80 border border-prajna-border rounded-lg px-3 py-2.5 text-prajna-muted hover:text-prajna-text transition-colors"
-                >
-                  {topic}
-                </button>
-              ))}
-            </div>
+      {/* ── Input Bar (sticky bottom) ──────────────────── */}
+      <div className="border-t border-gray-200 bg-white/80 backdrop-blur-sm">
+        <div className="max-w-3xl mx-auto px-4 py-3">
+          <div className="flex items-center gap-2 bg-white border border-gray-300 rounded-2xl px-2 py-1.5 shadow-sm focus-within:ring-2 focus-within:ring-indigo-500/30 focus-within:border-indigo-400 transition-all">
+            {/* Hidden file input */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".jpg,.jpeg,.png,.pdf,.webp"
+              onChange={handleFileUpload}
+              className="hidden"
+            />
+            {/* Upload button */}
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={loading}
+              className="p-2 rounded-xl text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 disabled:opacity-30 transition-colors"
+              title="Upload photo or PDF"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                <circle cx="8.5" cy="8.5" r="1.5" />
+                <polyline points="21 15 16 10 5 21" />
+              </svg>
+            </button>
+
+            {/* Text input */}
+            <input
+              ref={inputRef}
+              type="text"
+              value={input}
+              onChange={e => setInput(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && !e.shiftKey && sendMessage()}
+              placeholder="Ask a question, or upload a photo..."
+              className="flex-1 text-sm text-gray-800 placeholder:text-gray-400 bg-transparent outline-none py-2 px-1"
+              disabled={loading}
+            />
+
+            {/* Send button */}
+            <button
+              onClick={() => sendMessage()}
+              disabled={loading || !input.trim()}
+              className="p-2 rounded-xl bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-30 disabled:bg-gray-300 transition-colors"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="22" y1="2" x2="11" y2="13" />
+                <polygon points="22 2 15 22 11 13 2 9 22 2" />
+              </svg>
+            </button>
           </div>
-
-          {/* Quick Actions */}
-          <div>
-            <h3 className="text-sm font-semibold text-prajna-text mb-3">Quick Actions</h3>
-            <div className="grid grid-cols-2 gap-2">
-              {QUICK_ACTIONS.map((action, i) => (
-                <button
-                  key={i}
-                  onClick={() => setInput(action.template)}
-                  className="flex flex-col items-center gap-1.5 bg-prajna-card hover:bg-prajna-card/80 border border-prajna-border rounded-lg p-3 text-center transition-colors"
-                >
-                  <span className="text-xl">{action.icon}</span>
-                  <span className="text-xs text-prajna-muted">{action.label}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Practice Mode */}
-          <div>
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-semibold text-prajna-text">Practice Mode</h3>
-              <button
-                onClick={() => setPracticeMode(!practiceMode)}
-                className={`relative w-10 h-5 rounded-full transition-colors ${
-                  practiceMode ? 'bg-prajna-accent' : 'bg-prajna-border'
-                }`}
-              >
-                <span
-                  className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full transition-transform ${
-                    practiceMode ? 'translate-x-5' : ''
-                  }`}
-                />
-              </button>
-            </div>
-
-            {practiceMode && (
-              <div className="bg-prajna-card border border-prajna-border rounded-lg p-4 space-y-3">
-                {practiceLoading ? (
-                  <div className="text-sm text-prajna-muted animate-pulse">Loading question...</div>
-                ) : practiceQ ? (
-                  <>
-                    <div className="flex gap-2 mb-2">
-                      <span className="text-[10px] px-2 py-0.5 rounded bg-prajna-accent/15 text-prajna-accent">
-                        {practiceQ.subject}
-                      </span>
-                      <span className="text-[10px] px-2 py-0.5 rounded bg-prajna-teal/15 text-prajna-teal">
-                        {practiceQ.difficulty}
-                      </span>
-                    </div>
-                    <p className="text-sm text-prajna-text leading-relaxed">{practiceQ.question_clean}</p>
-
-                    <button
-                      onClick={() => setShowPracticeAnswer(!showPracticeAnswer)}
-                      className="text-xs text-prajna-accent hover:underline"
-                    >
-                      {showPracticeAnswer ? 'Hide Answer' : 'Show Answer'}
-                    </button>
-                    {showPracticeAnswer && (
-                      <div className="text-sm text-prajna-teal bg-prajna-surface rounded p-2 mt-1">
-                        {practiceQ.answer_clean}
-                      </div>
-                    )}
-                    <button
-                      onClick={fetchPracticeQuestion}
-                      className="block text-xs text-prajna-muted hover:text-prajna-text mt-2"
-                    >
-                      Next question &rarr;
-                    </button>
-                  </>
-                ) : (
-                  <p className="text-xs text-prajna-muted">Could not load a practice question.</p>
-                )}
-              </div>
-            )}
-          </div>
+          <p className="text-center text-[11px] text-gray-400 mt-2">
+            PRAJNA SLM · 1.14M questions · Qwen OCR · KaTeX math rendering
+          </p>
         </div>
       </div>
     </div>
