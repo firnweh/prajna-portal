@@ -17,7 +17,11 @@ export const useStore = create<PrajnaStore>((set) => ({
   exam: 'neet',
   year: 2026,
   microPreds: [],
-  setUser: (user) => set({ user }),
+  setUser: (user) => set({
+    user,
+    // Auto-set exam type from student's profile
+    ...(user?.exam ? { exam: user.exam === 'jee' ? 'jee' as const : 'neet' as const, microPreds: [] } : {}),
+  }),
   setExam: (exam) => set({ exam, microPreds: [] }),
   setYear: (year) => set({ year }),
   setMicroPreds: (microPreds) => set({ microPreds }),

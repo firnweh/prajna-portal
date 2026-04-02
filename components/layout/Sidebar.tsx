@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useStore } from '@/lib/store';
@@ -26,8 +27,31 @@ function NavLink({ item }: { item: NavItem }) {
 }
 
 export function Sidebar({ role }: { role: 'student' | 'center' | 'central' }) {
-  const { exam, year, user } = useStore();
+  const { exam, year, user, setUser } = useStore();
   const router = useRouter();
+
+  // Hydrate user from JWT cookie on mount (survives page refresh)
+  useEffect(() => {
+    if (user) return; // already hydrated
+    try {
+      const token = document.cookie
+        .split('; ')
+        .find(r => r.startsWith('prajna_token='))
+        ?.split('=')[1];
+      if (token) {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        if (payload && payload.exp * 1000 > Date.now()) {
+          setUser({
+            userId: String(payload.userId || ''),
+            role: payload.role,
+            branch: payload.branch || null,
+            studentId: payload.studentId || null,
+            exam: payload.exam || null,
+          });
+        }
+      }
+    } catch { /* invalid token — middleware will redirect to login */ }
+  }, [user, setUser]);
   const isStudent = role === 'student';
   const mainNav = isStudent ? studentNav : orgNav;
   const subjectLinks = isStudent ? getSubjectLinks(exam) : [];
