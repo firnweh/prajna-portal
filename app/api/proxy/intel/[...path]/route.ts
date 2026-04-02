@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 const INTEL_URL = process.env.NEXT_PUBLIC_INTEL_URL || 'http://localhost:8001';
-const PROXY_TIMEOUT = 120000; // 120 seconds for LLM + OCR responses
+const PROXY_TIMEOUT = 300000; // 300 seconds (5 min) for LLM + OCR responses
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ path: string[] }> }) {
   const { path } = await params;
