@@ -98,6 +98,7 @@ export default function CopilotPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [thinkingStage, setThinkingStage] = useState(0);
   const [practiceMode, setPracticeMode] = useState(false);
   const [practiceQ, setPracticeQ] = useState<PracticeQuestion | null>(null);
   const [showPracticeAnswer, setShowPracticeAnswer] = useState(false);
@@ -139,6 +140,15 @@ export default function CopilotPage() {
     setInput('');
     setMessages(prev => [...prev, { role: 'user', content: q }]);
     setLoading(true);
+    setThinkingStage(0);
+
+    // Advance thinking stages over time to show progress
+    const stageTimers = [
+      setTimeout(() => setThinkingStage(1), 2000),   // Searching...
+      setTimeout(() => setThinkingStage(2), 5000),   // Analyzing...
+      setTimeout(() => setThinkingStage(3), 12000),  // Generating...
+      setTimeout(() => setThinkingStage(4), 25000),  // Almost done...
+    ];
 
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 120000);
@@ -176,7 +186,9 @@ export default function CopilotPage() {
           : 'Something went wrong. Please try again.';
       setMessages(prev => [...prev, { role: 'assistant', content: msg }]);
     } finally {
+      stageTimers.forEach(clearTimeout);
       setLoading(false);
+      setThinkingStage(0);
     }
   };
 
@@ -243,11 +255,37 @@ export default function CopilotPage() {
 
             {loading && (
               <div className="flex justify-start">
-                <div className="bg-prajna-card rounded-2xl rounded-bl-md px-4 py-3">
-                  <div className="flex items-center gap-1.5">
-                    <span className="w-2 h-2 bg-prajna-accent rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                    <span className="w-2 h-2 bg-prajna-accent rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                    <span className="w-2 h-2 bg-prajna-accent rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                <div className="bg-prajna-card rounded-2xl rounded-bl-md px-4 py-3 max-w-md">
+                  <div className="space-y-2">
+                    {[
+                      { icon: '🔍', text: 'Searching 1.14M questions...', active: thinkingStage >= 0 },
+                      { icon: '📚', text: 'Found relevant questions. Retrieving solutions...', active: thinkingStage >= 1 },
+                      { icon: '🧠', text: 'Analyzing with PRAJNA SLM...', active: thinkingStage >= 2 },
+                      { icon: '✍️', text: 'Structuring answer with LaTeX formatting...', active: thinkingStage >= 3 },
+                      { icon: '⏳', text: 'Almost done — polishing response...', active: thinkingStage >= 4 },
+                    ].map((stage, i) => (
+                      <div
+                        key={i}
+                        className={`flex items-center gap-2 text-sm transition-all duration-300 ${
+                          stage.active
+                            ? i === thinkingStage
+                              ? 'text-prajna-accent font-medium'
+                              : 'text-prajna-teal'
+                            : 'text-prajna-muted/30'
+                        }`}
+                      >
+                        <span className={i === thinkingStage ? 'animate-pulse' : ''}>{stage.icon}</span>
+                        <span>{stage.text}</span>
+                        {i < thinkingStage && <span className="text-prajna-teal">✓</span>}
+                        {i === thinkingStage && (
+                          <span className="inline-flex gap-0.5 ml-1">
+                            <span className="w-1 h-1 bg-prajna-accent rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                            <span className="w-1 h-1 bg-prajna-accent rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                            <span className="w-1 h-1 bg-prajna-accent rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                          </span>
+                        )}
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>
