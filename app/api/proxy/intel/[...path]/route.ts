@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 const INTEL_URL = process.env.NEXT_PUBLIC_INTEL_URL || 'http://localhost:8001';
-const PROXY_TIMEOUT = 120000; // 120 seconds for LLM responses
+const PROXY_TIMEOUT = 120000; // 120 seconds for LLM + OCR responses
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ path: string[] }> }) {
   const { path } = await params;
@@ -28,15 +28,32 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ path
 export async function POST(req: NextRequest, { params }: { params: Promise<{ path: string[] }> }) {
   const { path } = await params;
   const target = `${INTEL_URL}/${path.join('/')}${req.nextUrl.search}`;
-  const body = await req.text();
+  const contentType = req.headers.get('content-type') || '';
 
   try {
-    const res = await fetch(target, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body,
-      signal: AbortSignal.timeout(PROXY_TIMEOUT),
-    });
+    let fetchOpts: RequestInit;
+
+    if (contentType.includes('multipart/form-data')) {
+      // File upload — forward the raw body with original content-type
+      const body = await req.arrayBuffer();
+      fetchOpts = {
+        method: 'POST',
+        headers: { 'Content-Type': contentType },
+        body: body,
+        signal: AbortSignal.timeout(PROXY_TIMEOUT),
+      };
+    } else {
+      // JSON request
+      const body = await req.text();
+      fetchOpts = {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body,
+        signal: AbortSignal.timeout(PROXY_TIMEOUT),
+      };
+    }
+
+    const res = await fetch(target, fetchOpts);
     const data = await res.text();
     return new NextResponse(data, {
       status: res.status,

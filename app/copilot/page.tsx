@@ -100,6 +100,8 @@ export default function CopilotPage() {
   const [loading, setLoading] = useState(false);
   const [thinkingStage, setThinkingStage] = useState(0);
   const [practiceMode, setPracticeMode] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [practiceQ, setPracticeQ] = useState<PracticeQuestion | null>(null);
   const [showPracticeAnswer, setShowPracticeAnswer] = useState(false);
   const [practiceLoading, setPracticeLoading] = useState(false);
@@ -192,6 +194,83 @@ export default function CopilotPage() {
     }
   };
 
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const ext = file.name.split('.').pop()?.toLowerCase();
+    if (!['jpg', 'jpeg', 'png', 'pdf', 'webp'].includes(ext || '')) {
+      setMessages(prev => [...prev, {
+        role: 'assistant',
+        content: 'Unsupported file type. Please upload a .jpg, .png, or .pdf file.',
+      }]);
+      return;
+    }
+
+    setUploading(true);
+    setLoading(true);
+    setThinkingStage(0);
+
+    // Show the upload as a user message
+    const fileName = file.name;
+    const isImage = ['jpg', 'jpeg', 'png', 'webp'].includes(ext || '');
+    setMessages(prev => [...prev, {
+      role: 'user',
+      content: `📎 Uploaded: ${fileName} ${isImage ? '(image)' : '(PDF)'}`,
+    }]);
+
+    // Thinking stages for OCR
+    const stageTimers = [
+      setTimeout(() => setThinkingStage(1), 2000),   // OCR extracting...
+      setTimeout(() => setThinkingStage(2), 8000),    // Text extracted...
+      setTimeout(() => setThinkingStage(3), 15000),   // Searching...
+      setTimeout(() => setThinkingStage(4), 25000),   // Generating...
+    ];
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('exam_type', exam);
+      if (exam === 'neet') formData.append('subject_filter', '');
+
+      const res = await fetch('/api/proxy/intel/api/v1/copilot/ocr-solve', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        const extractedNote = data.extracted_text
+          ? `\n\n📝 **Extracted text:**\n${data.extracted_text.slice(0, 300)}${data.extracted_text.length > 300 ? '...' : ''}`
+          : '';
+
+        setMessages(prev => [...prev, {
+          role: 'assistant',
+          content: (data.answer || 'Could not find a matching solution.') + extractedNote,
+          followUps: data.follow_up_questions,
+        }]);
+      } else {
+        setMessages(prev => [...prev, {
+          role: 'assistant',
+          content: `⚠️ ${data.error || 'Could not process the file. Try a clearer image.'}`,
+        }]);
+      }
+    } catch {
+      setMessages(prev => [...prev, {
+        role: 'assistant',
+        content: 'Failed to process the file. Ensure the Intelligence API and Qwen model are running.',
+      }]);
+    } finally {
+      stageTimers.forEach(clearTimeout);
+      setUploading(false);
+      setLoading(false);
+      setThinkingStage(0);
+      // Reset file input
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
   return (
     <div className="flex flex-col h-screen">
       <Header title="Ask PRAJNA" />
@@ -257,13 +336,19 @@ export default function CopilotPage() {
               <div className="flex justify-start">
                 <div className="bg-prajna-card rounded-2xl rounded-bl-md px-4 py-3 max-w-md">
                   <div className="space-y-2">
-                    {[
+                    {(uploading ? [
+                      { icon: '📷', text: 'Processing image with Qwen OCR...', active: thinkingStage >= 0 },
+                      { icon: '📝', text: 'Extracting text and math formulas...', active: thinkingStage >= 1 },
+                      { icon: '🔍', text: 'Searching 1.14M questions for matches...', active: thinkingStage >= 2 },
+                      { icon: '🧠', text: 'PRAJNA SLM structuring the solution...', active: thinkingStage >= 3 },
+                      { icon: '✍️', text: 'Formatting with LaTeX...', active: thinkingStage >= 4 },
+                    ] : [
                       { icon: '🔍', text: 'Searching 1.14M questions...', active: thinkingStage >= 0 },
                       { icon: '📚', text: 'Found relevant questions. Retrieving solutions...', active: thinkingStage >= 1 },
                       { icon: '🧠', text: 'Analyzing with PRAJNA SLM...', active: thinkingStage >= 2 },
                       { icon: '✍️', text: 'Structuring answer with LaTeX formatting...', active: thinkingStage >= 3 },
                       { icon: '⏳', text: 'Almost done — polishing response...', active: thinkingStage >= 4 },
-                    ].map((stage, i) => (
+                    ]).map((stage, i) => (
                       <div
                         key={i}
                         className={`flex items-center gap-2 text-sm transition-all duration-300 ${
@@ -295,13 +380,30 @@ export default function CopilotPage() {
 
           {/* Input bar */}
           <div className="border-t border-prajna-border p-4">
-            <div className="flex gap-3">
+            <div className="flex gap-2">
+              {/* Hidden file input */}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".jpg,.jpeg,.png,.pdf,.webp"
+                onChange={handleFileUpload}
+                className="hidden"
+              />
+              {/* Upload button */}
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={loading || uploading}
+                className="bg-prajna-card border border-prajna-border hover:border-prajna-accent disabled:opacity-40 text-prajna-muted hover:text-prajna-accent px-3 py-3 rounded-xl text-lg transition-colors"
+                title="Upload photo or PDF of a question"
+              >
+                📷
+              </button>
               <input
                 type="text"
                 value={input}
                 onChange={e => setInput(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && !e.shiftKey && sendMessage()}
-                placeholder="Ask a question..."
+                placeholder="Ask a question or upload a photo..."
                 className="flex-1 bg-prajna-card border border-prajna-border rounded-xl px-4 py-3 text-sm text-prajna-text placeholder:text-prajna-muted focus:outline-none focus:ring-2 focus:ring-prajna-accent/50"
               />
               <button
@@ -312,6 +414,9 @@ export default function CopilotPage() {
                 Send
               </button>
             </div>
+            <p className="text-[0.65rem] text-prajna-muted mt-1.5 ml-14">
+              📷 Upload a photo or PDF of any question — Qwen OCR extracts the text, PRAJNA SLM solves it
+            </p>
           </div>
         </div>
 
