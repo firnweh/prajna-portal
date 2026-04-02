@@ -141,7 +141,7 @@ export default function CopilotPage() {
     setLoading(true);
 
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 60000);
+    const timeout = setTimeout(() => controller.abort(), 120000);
 
     try {
       const res = await intelligence('/api/v1/copilot/ask', {

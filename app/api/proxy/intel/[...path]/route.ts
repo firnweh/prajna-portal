@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 const INTEL_URL = process.env.NEXT_PUBLIC_INTEL_URL || 'http://localhost:8001';
+const PROXY_TIMEOUT = 120000; // 120 seconds for LLM responses
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ path: string[] }> }) {
   const { path } = await params;
@@ -9,6 +10,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ path
   try {
     const res = await fetch(target, {
       headers: { 'Content-Type': 'application/json' },
+      signal: AbortSignal.timeout(PROXY_TIMEOUT),
     });
     const data = await res.text();
     return new NextResponse(data, {
@@ -33,6 +35,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ pat
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body,
+      signal: AbortSignal.timeout(PROXY_TIMEOUT),
     });
     const data = await res.text();
     return new NextResponse(data, {
